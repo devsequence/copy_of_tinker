@@ -1,0 +1,637 @@
+<section class="custom-products-carousel section-{{ section.id }}">
+  <div class="custom-products-carousel__container">
+    <div class="custom-products-carousel__head">
+      <div class="custom-products-carousel__title-wrap">
+        {% if section.settings.title_accent != blank or section.settings.title != blank %}
+          <h2 class="custom-products-carousel__title">
+            {% if section.settings.title_accent != blank %}
+              <em>{{ section.settings.title_accent }}</em>
+            {% endif %}
+            {{ section.settings.title }}
+          </h2>
+        {% endif %}
+
+        {% if section.settings.text != blank %}
+          <div class="custom-products-carousel__text">
+            {{ section.settings.text }}
+          </div>
+        {% endif %}
+      </div>
+
+      {% if section.settings.button_text != blank and section.settings.button_link != blank %}
+        <a href="{{ section.settings.button_link }}" class="custom-products-carousel__button">
+          {{ section.settings.button_text }}
+        </a>
+      {% endif %}
+    </div>
+
+    {% assign selected_collection = section.settings.collection %}
+
+    {% if selected_collection != blank and selected_collection.products_count > 0 %}
+      <div class="custom-products-carousel__viewport">
+        <div class="custom-products-carousel__track" data-products-track>
+          {% for product in selected_collection.products limit: section.settings.products_limit %}
+            {% assign current_variant = product.selected_or_first_available_variant %}
+            {% assign has_sale = false %}
+
+            {% if product.compare_at_price_max > product.price %}
+              {% assign has_sale = true %}
+              {% assign discount_amount = product.compare_at_price_max | minus: product.price %}
+              {% assign discount_percent = discount_amount | times: 100 | divided_by: product.compare_at_price_max %}
+            {% endif %}
+
+            <article class="custom-product-card">
+              <div class="custom-product-card__image-wrap">
+                <a href="{{ product.url }}" class="custom-product-card__image-link">
+                  <div class="custom-product-card__badges">
+                    {% if product.tags contains 'Hot' or product.tags contains 'hot' %}
+                      <span class="custom-product-card__badge custom-product-card__badge--hot">
+                        Hot 🔥
+                      </span>
+                    {% endif %}
+
+                    {% if has_sale %}
+                      <span class="custom-product-card__badge custom-product-card__badge--sale">
+                        Sale %
+                      </span>
+                    {% endif %}
+
+                    {% if product.tags contains 'New' or product.tags contains 'new' %}
+                      <span class="custom-product-card__badge custom-product-card__badge--new">
+                        New ✧
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <button type="button" class="custom-product-card__wishlist" aria-label="Add to wishlist">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M20.84 4.61C20.33 4.1 19.72 3.7 19.05 3.43C18.38 3.15 17.66 3.01 16.94 3.01C16.22 3.01 15.51 3.15 14.84 3.43C14.17 3.7 13.56 4.1 13.05 4.61L12 5.66L10.95 4.61C9.92 3.58 8.52 3 7.06 3C5.6 3 4.2 3.58 3.17 4.61C2.14 5.64 1.56 7.04 1.56 8.5C1.56 9.96 2.14 11.36 3.17 12.39L12 21.22L20.84 12.39C21.35 11.88 21.75 11.27 22.03 10.6C22.3 9.93 22.44 9.22 22.44 8.5C22.44 7.78 22.3 7.06 22.03 6.39C21.75 5.72 21.35 5.12 20.84 4.61Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+
+                  {% if product.featured_image != blank %}
+                    <img
+                      src="{{ product.featured_image | image_url: width: 600 }}"
+                      alt="{{ product.featured_image.alt | default: product.title | escape }}"
+                      loading="lazy"
+                      width="300"
+                      height="300"
+                    >
+                  {% endif %}
+                </a>
+
+                {% if section.settings.show_add_to_cart %}
+                  {% form 'product', product, class: 'custom-product-card__form' %}
+                    <input type="hidden" name="id" value="{{ current_variant.id }}">
+
+                    <button
+                      type="submit"
+                      name="add"
+                      class="custom-product-card__cart"
+                      {% unless product.available %}disabled{% endunless %}
+                    >
+                      {% if product.available %}
+                        {{ section.settings.cart_text }}
+                      {% else %}
+                        Немає в наявності
+                      {% endif %}
+                    </button>
+                  {% endform %}
+                {% endif %}
+              </div>
+
+              <div class="custom-product-card__body">
+                <div class="custom-product-card__top-line">
+                  {% if product.type != blank %}
+                    <div class="custom-product-card__category">
+                      {{ product.type }}
+                    </div>
+                  {% endif %}
+
+                  {% if has_sale %}
+                    <div class="custom-product-card__discount">
+                      -{{ discount_percent }}%
+                    </div>
+                  {% endif %}
+                </div>
+
+                <a href="{{ product.url }}" class="custom-product-card__title">
+                  {{ product.title }}
+                </a>
+
+                <div class="custom-product-card__price-row">
+                  <div class="custom-product-card__price">
+                    {{ product.price | money }}
+                  </div>
+
+                  {% if has_sale %}
+                    <s class="custom-product-card__old-price">
+                      {{ product.compare_at_price_max | money }}
+                    </s>
+                  {% endif %}
+                </div>
+
+                {% if product.variants.size > 1 %}
+                  <div class="custom-product-card__variants">
+                    {% for variant in product.variants limit: 4 %}
+                      {% unless variant.title == 'Default Title' %}
+                        <span>{{ variant.title }}</span>
+                      {% endunless %}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <div class="custom-products-carousel__empty">
+        Обери колекцію в налаштуваннях секції.
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+  .section-{{ section.id }} {
+    padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px;
+    overflow: hidden;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__container {
+    max-width: {{ section.settings.container_width }}px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 36px;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__title {
+    margin: 0 0 16px;
+    color: #0f1a2a;
+    font-size: clamp(28px, 3vw, 42px);
+    line-height: 1.08;
+    font-weight: 400;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__title em {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__text {
+    max-width: 580px;
+    color: #7b8496;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__text p {
+    margin: 0;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 34px;
+    border: 1px solid #3159b7;
+    border-radius: 999px;
+    color: #3159b7;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: 0.25s ease;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__button:hover {
+    background: #3159b7;
+    color: #fff;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__viewport {
+    margin: 0 -24px;
+    overflow: hidden;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding: 0 24px 12px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .section-{{ section.id }} .custom-product-card {
+    flex: 0 0 {{ section.settings.card_width }}px;
+    scroll-snap-align: start;
+  }
+
+  .section-{{ section.id }} .custom-product-card__image-wrap {
+    position: relative;
+    height: {{ section.settings.image_height }}px;
+    border-radius: 12px;
+    background: #f8f8f9;
+  }
+
+  .section-{{ section.id }} .custom-product-card__image-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 34px 24px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: 0.25s ease;
+  }
+
+  .section-{{ section.id }} .custom-product-card:hover .custom-product-card__image-link {
+    border-color: #3159b7;
+  }
+
+  .section-{{ section.id }} .custom-product-card__image-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: 0.3s ease;
+  }
+
+  .section-{{ section.id }} .custom-product-card:hover .custom-product-card__image-link img {
+    transform: scale(1.04);
+  }
+
+  .section-{{ section.id }} .custom-product-card__badges {
+    position: absolute;
+    z-index: 3;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .section-{{ section.id }} .custom-product-card__badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 21px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .section-{{ section.id }} .custom-product-card__badge--hot {
+    border: 1px solid #ff8a2a;
+    color: #ff8a2a;
+  }
+
+  .section-{{ section.id }} .custom-product-card__badge--sale {
+    border: 1px solid #ff405c;
+    color: #ff405c;
+  }
+
+  .section-{{ section.id }} .custom-product-card__badge--new {
+    border: 1px solid #a238ff;
+    color: #a238ff;
+  }
+
+  .section-{{ section.id }} .custom-product-card__wishlist {
+    position: absolute;
+    z-index: 3;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #0f1a2a;
+    cursor: pointer;
+  }
+
+  .section-{{ section.id }} .custom-product-card__form {
+    position: absolute;
+    z-index: 4;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: 0.25s ease;
+  }
+
+  .section-{{ section.id }} .custom-product-card:hover .custom-product-card__form {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .section-{{ section.id }} .custom-product-card__cart {
+    width: 100%;
+    min-height: 42px;
+    border: 0;
+    border-radius: 999px;
+    background: #3159b7;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .section-{{ section.id }} .custom-product-card__cart:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .section-{{ section.id }} .custom-product-card__body {
+    padding-top: 10px;
+  }
+
+  .section-{{ section.id }} .custom-product-card__top-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .section-{{ section.id }} .custom-product-card__category {
+    color: #7b8496;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .section-{{ section.id }} .custom-product-card__discount {
+    color: #ff2f45;
+    font-size: 12px;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+
+  .section-{{ section.id }} .custom-product-card__title {
+    display: block;
+    min-height: 34px;
+    color: #0f1a2a;
+    font-size: 13px;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+
+  .section-{{ section.id }} .custom-product-card__title:hover {
+    color: #3159b7;
+  }
+
+  .section-{{ section.id }} .custom-product-card__price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: -18px;
+    min-height: 18px;
+  }
+
+  .section-{{ section.id }} .custom-product-card__price {
+    color: #0f1a2a;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .section-{{ section.id }} .custom-product-card__old-price {
+    color: #9aa3b5;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .section-{{ section.id }} .custom-product-card__variants {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .section-{{ section.id }} .custom-product-card__variants span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 22px;
+    padding: 3px 9px;
+    border: 1px solid #cfd8ee;
+    border-radius: 999px;
+    color: #3159b7;
+    background: #fff;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .section-{{ section.id }} .custom-products-carousel__empty {
+    padding: 24px;
+    border: 1px dashed #cfd8ee;
+    border-radius: 12px;
+    color: #7b8496;
+  }
+
+  @media (max-width: 989px) {
+    .section-{{ section.id }} .custom-products-carousel__head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .section-{{ section.id }} .custom-product-card {
+      flex-basis: 235px;
+    }
+
+    .section-{{ section.id }} .custom-product-card__form {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+  }
+
+  @media (max-width: 749px) {
+    .section-{{ section.id }} {
+      padding-top: {{ section.settings.mobile_padding_top }}px;
+      padding-bottom: {{ section.settings.mobile_padding_bottom }}px;
+    }
+
+    .section-{{ section.id }} .custom-products-carousel__container {
+      padding: 0 16px;
+    }
+
+    .section-{{ section.id }} .custom-products-carousel__viewport {
+      margin: 0 -16px;
+    }
+
+    .section-{{ section.id }} .custom-products-carousel__track {
+      padding: 0 16px 10px;
+    }
+
+    .section-{{ section.id }} .custom-product-card {
+      flex-basis: 220px;
+    }
+
+    .section-{{ section.id }} .custom-product-card__image-wrap {
+      height: 250px;
+    }
+
+    .section-{{ section.id }} .custom-product-card__price-row {
+      justify-content: flex-start;
+      margin-top: 8px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Custom products carousel",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title_accent",
+      "label": "Italic title part",
+      "default": "Популярні"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "товари"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Description",
+      "default": "<p>Добірка засобів, які поєднують ефективність, якість і довіру спеціалістів.</p>"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Products collection"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "Products limit",
+      "min": 4,
+      "max": 24,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Дивитись популярні товари"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_add_to_cart",
+      "label": "Show add to cart button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cart_text",
+      "label": "Cart button text",
+      "default": "Додати до кошика"
+    },
+    {
+      "type": "range",
+      "id": "container_width",
+      "label": "Container width",
+      "min": 1000,
+      "max": 1600,
+      "step": 20,
+      "default": 1220
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "Card width",
+      "min": 220,
+      "max": 340,
+      "step": 5,
+      "default": 280
+    },
+    {
+      "type": "range",
+      "id": "image_height",
+      "label": "Image block height",
+      "min": 220,
+      "max": 420,
+      "step": 10,
+      "default": 320
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0,
+      "max": 140,
+      "step": 4,
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0,
+      "max": 140,
+      "step": 4,
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_top",
+      "label": "Mobile padding top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_bottom",
+      "label": "Mobile padding bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom products carousel"
+    }
+  ]
+}
+{% endschema %}

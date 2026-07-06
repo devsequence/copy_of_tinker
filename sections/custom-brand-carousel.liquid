@@ -1,0 +1,90 @@
+<section class="custom-brand-carousel">
+  <div class="page-width">
+    <h2>{{ section.settings.title }}</h2>
+
+    <div class="custom-brand-carousel__list">
+      {% for block in section.blocks %}
+        <a href="{{ block.settings.link }}" class="custom-brand-carousel__item" {{ block.shopify_attributes }}>
+          {% if block.settings.logo != blank %}
+            <img src="{{ block.settings.logo | image_url: width: 300 }}" alt="{{ block.settings.title | escape }}">
+          {% else %}
+            <span>{{ block.settings.title }}</span>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<style>
+  .custom-brand-carousel {
+    padding: 40px 0;
+  }
+
+  .custom-brand-carousel__list {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+  }
+
+  .custom-brand-carousel__item {
+    flex: 0 0 150px;
+    height: 100px;
+    border: 1px dashed #345dbb;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: #fff;
+  }
+
+  .custom-brand-carousel__item img {
+    max-width: 100%;
+    max-height: 60px;
+    object-fit: contain;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Custom brand carousel",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Бренди"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "Brand item",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Fallback title",
+          "default": "Brand"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom brand carousel"
+    }
+  ]
+}
+{% endschema %}
